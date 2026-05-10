@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: upload
+  labels:
+    app: upload
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: upload
+  template:
+    metadata:
+      labels:
+        app: upload
+    spec:
+      containers:
+      - name: upload
+        image: hub.jsesp.cn:5000/library/upload:prod
+        ports:
+        - containerPort: 80
+          name: web
+        env:
+        - name: APP_ENV
+          value: COS
+        - name: CONFIG_DIR
+          value: /config
+        - name: TZ
+          value: Asia/Shanghai
+        volumeMounts:
+        - name: config
+          mountPath: /config
+          readOnly: true
+        resources:
+          requests:
+            cpu: 50m
+            memory: 32Mi
+          limits:
+            cpu: 200m
+            memory: 128Mi
+      volumes:
+      - name: config
+        configMap:
+          name: upload-config
+      imagePullSecrets:
+      - name: registry-pull-secret
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: upload
+spec:
+  type: ClusterIP
+  selector:
+    app: upload
+  ports:
+  - port: 80
+    targetPort: 80
+---
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+  name: upload-route
+spec:
+  parentRefs:
+  - name: traefik-gateway
+    namespace: gw
+    sectionName: web
+  hostnames:
+  - "api.jsesp.cn"
+  rules:
+  - matches:
+    - path:
+        type: PathPrefix
+        value: /v1/upload
+    backendRefs:
+    - name: upload
+      port: 80

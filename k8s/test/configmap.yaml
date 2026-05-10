@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: upload-config
+data:
+  application-prod.yml: |
+    name: "upload"
+    mode: "test"
+    port: 80
+    host: "0.0.0.0"
+    cos:
+      secret_id: ""
+      secret_key: ""
+      region: "ap-guangzhou"
+      bucket_url: "https://test-bucket.cos.ap-guangzhou.myqcloud.com"
+    oss:
+      access_key_id: ""
+      access_key_secret: ""
+      endpoint: "https://oss-cn-hangzhou.aliyuncs.com"
+      bucket: "test-bucket"
