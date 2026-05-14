@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -38,6 +39,7 @@ func initConfig(env string) error {
 	viper.AddConfigPath(configDir)
 
 	viper.SetEnvPrefix("UPLOAD")
+	viper.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
 	viper.AutomaticEnv()
 
 	if err := viper.ReadInConfig(); err != nil {
