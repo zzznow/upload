@@ -1,6 +1,6 @@
 module github.com/zzznow/upload
 
-go 1.25
+go 1.26.3
 
 require (
 	github.com/gin-gonic/gin v1.10.0
