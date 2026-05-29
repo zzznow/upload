@@ -7,6 +7,10 @@ ENV GO111MODULE=on \
     GOPROXY=direct \
     GONOSUMDB=*
 
+RUN echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/main" > /etc/apk/repositories && \
+    echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/community" >> /etc/apk/repositories && \
+    apk add --no-cache git
+
 WORKDIR /build
 COPY go.mod go.sum ./
 RUN go mod download
