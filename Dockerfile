@@ -4,7 +4,7 @@ ENV GO111MODULE=on \
     CGO_ENABLED=0 \
     GOOS=linux \
     GOARCH=amd64 \
-    GOPROXY=direct \
+    GOPROXY=https://goproxy.cn,direct \
     GONOSUMDB=*
 
 RUN echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/main" > /etc/apk/repositories && \
