@@ -65,7 +65,7 @@ spec:
   parentRefs:
   - name: traefik-gateway
     namespace: gw
-    sectionName: web
+    # sectionName: web
   hostnames:
   - "api.test.jsesp.cn"
   rules:

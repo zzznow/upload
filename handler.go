@@ -29,7 +29,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file, header, err := c.Request.FormFile("file")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "missing file"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "upload: missing file"})
 			return
 		}
 		defer file.Close()
@@ -37,7 +37,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 		data, err := io.ReadAll(file)
 		if err != nil {
 			slog.Error("read file failed", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "read file failed"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "upload: read file failed"})
 			return
 		}
 
@@ -55,7 +55,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 		url, err := client.Upload(c.Request.Context(), objectKey, data, contentType)
 		if err != nil {
 			slog.Error("upload failed", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "upload failed"})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "upload: upload failed"})
 			return
 		}
 
