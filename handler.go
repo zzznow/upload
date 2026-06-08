@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/gin-gonic/gin"
+	"github.com/zzznow/common"
 )
 
 type UploadClient interface {
@@ -29,7 +30,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		file, header, err := c.Request.FormFile("file")
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "upload: missing file"})
+			common.ErrorMsg(c, http.StatusBadRequest, "upload: missing file")
 			return
 		}
 		defer file.Close()
@@ -37,7 +38,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 		data, err := io.ReadAll(file)
 		if err != nil {
 			slog.Error("read file failed", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "upload: read file failed"})
+			common.ErrorMsg(c, http.StatusInternalServerError, "upload: read file failed")
 			return
 		}
 
@@ -55,7 +56,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 		url, err := client.Upload(c.Request.Context(), objectKey, data, contentType)
 		if err != nil {
 			slog.Error("upload failed", "error", err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "upload: upload failed"})
+			common.ErrorMsg(c, http.StatusInternalServerError, "upload: upload failed")
 			return
 		}
 
@@ -77,3 +78,4 @@ func allowedExt(ext string) bool {
 	}
 	return false
 }
+

@@ -11,6 +11,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/viper"
+	"github.com/zzznow/common"
 )
 
 func main() {
@@ -39,6 +40,8 @@ func main() {
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()
+	r.Use(common.TraceMiddleware())
+	r.Use(func(c *gin.Context) { common.SetServiceName(c, "upload"); c.Next() })
 
 	r.GET("/health", healthHandler)
 	r.GET("/healthz", healthHandler)
