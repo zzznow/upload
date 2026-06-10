@@ -29,8 +29,8 @@ type OSSConfig struct {
 	Bucket          string
 }
 
-func initConfig(env string) error {
-	viper.SetConfigName("application-prod")
+func initConfig(mode string) error {
+	viper.SetConfigName("application-" + mode)
 	viper.SetConfigType("yml")
 
 	configDir := os.Getenv("CONFIG_DIR")
@@ -52,4 +52,14 @@ func initConfig(env string) error {
 	}
 
 	return nil
+}
+
+func DetectBackend() string {
+	if viper.GetString("cos.secret_id") != "" && viper.GetString("cos.secret_key") != "" {
+		return "COS"
+	}
+	if viper.GetString("oss.access_key_id") != "" && viper.GetString("oss.access_key_secret") != "" {
+		return "OSS"
+	}
+	return ""
 }

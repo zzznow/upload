@@ -15,28 +15,31 @@ import (
 )
 
 func main() {
-	env := os.Getenv("APP_ENV")
-	if env == "" {
-		env = "COS"
+	mode := os.Getenv("APP_MODE")
+	if mode == "" {
+		mode = "prod"
 	}
-	slog.Info("upload service starting", "env", env)
+	slog.Info("upload service starting", "mode", mode)
 
-	if err := initConfig(env); err != nil {
+	if err := initConfig(mode); err != nil {
 		slog.Error("config init failed", "error", err)
 		os.Exit(1)
 	}
 
+	backend := DetectBackend()
+	if backend == "" {
+		slog.Error("no upload backend configured, set COS or OSS credentials")
+		os.Exit(1)
+	}
+
 	var client UploadClient
-	switch env {
+	switch backend {
 	case "COS":
 		client = NewCOSClient()
 	case "OSS":
 		client = NewOSSClient()
-	default:
-		slog.Error("unknown upload backend", "env", env)
-		os.Exit(1)
 	}
-	slog.Info("upload backend ready", "backend", env)
+	slog.Info("upload backend ready", "backend", backend)
 
 	gin.SetMode(gin.ReleaseMode)
 	r := gin.Default()

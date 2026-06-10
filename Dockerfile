@@ -20,7 +20,7 @@ RUN go build -ldflags="-s -w" -o app .
 FROM alpine:3.23
 WORKDIR /apps
 ENV LANG=en_US.UTF-8
-ENV APP_ENV=COS
+ENV APP_MODE=prod
 
 RUN echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/main" > /etc/apk/repositories && \
     echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/community" >> /etc/apk/repositories && \
