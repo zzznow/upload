@@ -5,17 +5,14 @@ ENV GO111MODULE=on \
     GOOS=linux \
     GOARCH=amd64 \
     GOPROXY=https://goproxy.cn,direct \
-    GONOSUMDB=*
-
-RUN echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/main" > /etc/apk/repositories && \
-    echo "http://mirrors.tuna.tsinghua.edu.cn/alpine/v3.23/community" >> /etc/apk/repositories && \
-    apk add --no-cache git
+    GONOSUMDB=* \
+    GOMODCACHE=/cache/gomod
 
 WORKDIR /build
-COPY go.mod go.sum ./
-RUN go mod download
 COPY . .
-RUN go build -ldflags="-s -w" -o app .
+
+RUN --mount=type=cache,target=/cache/gomod,sharing=locked \
+    go build -ldflags="-s -w" -o app .
 
 FROM alpine:3.23
 WORKDIR /apps
