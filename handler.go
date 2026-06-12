@@ -53,10 +53,12 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 			objectKey = fmt.Sprintf("uploads/%d%s", time.Now().UnixNano()/1e6, ext)
 		}
 
+		slog.Info("upload starting", "filename", header.Filename, "size", len(data), "contentType", contentType, "key", objectKey)
+
 		url, err := client.Upload(c.Request.Context(), objectKey, data, contentType)
 		if err != nil {
-			slog.Error("upload failed", "error", err)
-			common.ErrorMsg(c, http.StatusInternalServerError, "upload: upload failed")
+			slog.Error("upload failed", "filename", header.Filename, "size", len(data), "key", objectKey, "contentType", contentType, "error", err.Error())
+			common.ErrorMsg(c, http.StatusInternalServerError, fmt.Sprintf("upload: %s", err.Error()))
 			return
 		}
 

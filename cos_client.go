@@ -10,7 +10,6 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/spf13/viper"
@@ -35,7 +34,7 @@ func NewCOSClient() *COSClient {
 }
 
 func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, contentType string) (string, error) {
-	objectURL := fmt.Sprintf("%s/%s", c.bucketURL, url.PathEscape(objectKey))
+	objectURL := fmt.Sprintf("%s/%s", c.bucketURL, objectKey)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, objectURL, bytes.NewReader(data))
 	if err != nil {
@@ -67,7 +66,7 @@ func (c *COSClient) signRequest(req *http.Request, objectKey string) {
 	t := time.Now().UTC()
 	signTime := fmt.Sprintf("%d;%d", t.Unix()-60, t.Unix()+3600)
 
-	httpString := fmt.Sprintf("%s\n%s\n\nhost=%s\n", req.Method, url.PathEscape(objectKey), req.URL.Host)
+	httpString := fmt.Sprintf("%s\n/%s\n\nhost=%s\n", req.Method, objectKey, req.URL.Host)
 	sha1Hash := sha1Sum([]byte(httpString))
 
 	strToSign := fmt.Sprintf("sha1\n%s\n%s\n", signTime, sha1Hash)
