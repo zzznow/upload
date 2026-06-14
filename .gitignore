@@ -14,3 +14,5 @@ zig-pkg
 
 *.exe
 
+vendor/
+

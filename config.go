@@ -18,6 +18,7 @@ type Config struct {
 type COSConfig struct {
 	SecretID  string
 	SecretKey string
+	Endpoint  string
 	BucketURL string
 	Region    string
 }

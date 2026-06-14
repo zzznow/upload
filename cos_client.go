@@ -18,7 +18,8 @@ import (
 type COSClient struct {
 	secretID  string
 	secretKey string
-	bucketURL string
+	endpoint  string
+	cdnURL    string
 	region    string
 	client    *http.Client
 }
@@ -27,14 +28,18 @@ func NewCOSClient() *COSClient {
 	return &COSClient{
 		secretID:  viper.GetString("cos.secret_id"),
 		secretKey: viper.GetString("cos.secret_key"),
-		bucketURL: viper.GetString("cos.bucket_url"),
+		endpoint:  viper.GetString("cos.endpoint"),
+		cdnURL:    viper.GetString("cos.bucket_url"),
 		region:    viper.GetString("cos.region"),
 		client:    &http.Client{Timeout: 60 * time.Second},
 	}
 }
 
 func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, contentType string) (string, error) {
-	objectURL := fmt.Sprintf("%s/%s", c.bucketURL, objectKey)
+	if c.endpoint == "" {
+		c.endpoint = c.cdnURL
+	}
+	objectURL := fmt.Sprintf("%s/%s", c.endpoint, objectKey)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPut, objectURL, bytes.NewReader(data))
 	if err != nil {
@@ -59,7 +64,11 @@ func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, c
 	}
 
 	slog.Info("cos upload success", "key", objectKey, "size", len(data))
-	return objectURL, nil
+	publicURL := objectURL
+	if c.cdnURL != "" && c.cdnURL != c.endpoint {
+		publicURL = fmt.Sprintf("%s/%s", c.cdnURL, objectKey)
+	}
+	return publicURL, nil
 }
 
 func (c *COSClient) signRequest(req *http.Request, objectKey string) {
