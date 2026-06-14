@@ -50,7 +50,7 @@ func uploadHandler(client UploadClient) gin.HandlerFunc {
 		objectKey := c.PostForm("key")
 		if objectKey == "" {
 			ext := filepath.Ext(header.Filename)
-			objectKey = fmt.Sprintf("uploads/%d%s", time.Now().UnixNano()/1e6, ext)
+			objectKey = fmt.Sprintf("%s/%d%s", time.Now().Format("2006/01/02"), time.Now().UnixNano()/1e6, ext)
 		}
 
 		slog.Info("upload starting", "filename", header.Filename, "size", len(data), "contentType", contentType, "key", objectKey)
