@@ -10,6 +10,7 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/spf13/viper"
@@ -75,7 +76,16 @@ func (c *COSClient) signRequest(req *http.Request, objectKey string) {
 	t := time.Now().UTC()
 	signTime := fmt.Sprintf("%d;%d", t.Unix()-60, t.Unix()+3600)
 
-	httpString := fmt.Sprintf("%s\n/%s\n\nhost=%s\n", req.Method, objectKey, req.URL.Host)
+	lowerMethod := strings.ToLower(req.Method)
+	host := req.URL.Host
+	contentLen := req.Header.Get("Content-Length")
+	contentType := req.Header.Get("Content-Type")
+
+	httpString := fmt.Sprintf("%s\n/%s\n\nhost=%s\n", lowerMethod, objectKey, host)
+	if contentLen != "" {
+		httpString = fmt.Sprintf("%s\n/%s\n\ncontent-length=%s&content-type=%s&host=%s\n",
+			lowerMethod, objectKey, contentLen, contentType, host)
+	}
 	sha1Hash := sha1Sum([]byte(httpString))
 
 	strToSign := fmt.Sprintf("sha1\n%s\n%s\n", signTime, sha1Hash)
@@ -89,9 +99,13 @@ func (c *COSClient) signRequest(req *http.Request, objectKey string) {
 	mac2.Write([]byte(strToSign))
 	signature := hex.EncodeToString(mac2.Sum(nil))
 
+	headerList := "host"
+	if contentLen != "" {
+		headerList = "content-length;content-type;host"
+	}
 	auth := fmt.Sprintf(
-		"q-sign-algorithm=sha1&q-ak=%s&q-sign-time=%s&q-key-time=%s&q-header-list=host&q-url-param-list=&q-signature=%s",
-		c.secretID, signTime, signTime, signature,
+		"q-sign-algorithm=sha1&q-ak=%s&q-sign-time=%s&q-key-time=%s&q-header-list=%s&q-url-param-list=&q-signature=%s",
+		c.secretID, signTime, signTime, headerList, signature,
 	)
 	req.Header.Set("Authorization", auth)
 }
