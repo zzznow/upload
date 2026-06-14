@@ -50,6 +50,8 @@ func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, c
 	req.Header.Set("Content-Type", contentType)
 	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(data)))
 
+	c.signRequest(req, objectKey)
+
 	resp, err := c.client.Do(req)
 	if err != nil {
 		return "", fmt.Errorf("cos upload: %w", err)
