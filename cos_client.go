@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bytes"
 	"context"
 	"crypto/hmac"
 	"crypto/sha1"
@@ -36,19 +35,19 @@ func NewCOSClient() *COSClient {
 	}
 }
 
-func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, contentType string) (string, error) {
+func (c *COSClient) Upload(ctx context.Context, objectKey string, body io.Reader, size int64, contentType string) (string, error) {
 	if c.endpoint == "" {
 		c.endpoint = c.cdnURL
 	}
 	objectURL := fmt.Sprintf("%s/%s", c.endpoint, objectKey)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodPut, objectURL, bytes.NewReader(data))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPut, objectURL, body)
 	if err != nil {
 		return "", fmt.Errorf("create request: %w", err)
 	}
 
 	req.Header.Set("Content-Type", contentType)
-	req.Header.Set("Content-Length", fmt.Sprintf("%d", len(data)))
+	req.ContentLength = size
 
 	c.signRequest(req, objectKey)
 
@@ -59,12 +58,12 @@ func (c *COSClient) Upload(ctx context.Context, objectKey string, data []byte, c
 	defer resp.Body.Close()
 
 	if resp.StatusCode != http.StatusOK {
-		body, _ := io.ReadAll(resp.Body)
-		slog.Error("cos upload failed", "status", resp.StatusCode, "body", string(body))
+		respBody, _ := io.ReadAll(resp.Body)
+		slog.Error("cos upload failed", "status", resp.StatusCode, "body", string(respBody))
 		return "", fmt.Errorf("cos: HTTP %d", resp.StatusCode)
 	}
 
-	slog.Info("cos upload success", "key", objectKey, "size", len(data))
+	slog.Info("cos upload success", "key", objectKey, "size", size)
 	publicURL := objectURL
 	if c.cdnURL != "" && c.cdnURL != c.endpoint {
 		publicURL = fmt.Sprintf("%s/%s", c.cdnURL, objectKey)
